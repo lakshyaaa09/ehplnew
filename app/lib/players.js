@@ -89,7 +89,6 @@ export const DEFAULT_PLAYERS = [
   { id: "c11-86", name: "SWASTIK AGRAWAL", activity: "CRICKET", gender: "male", status: "available" },
 
   { id: "c11-88", name: "SPARSH DOSI", activity: "ATHLETICS", gender: "male", status: "available" },
-  { id: "c11-89", name: "VIVAN JAIN", activity: "JUDO", gender: "male", status: "available" },
   { id: "c11-90", name: "RITIK GOSHI", activity: "JUDO", gender: "male", status: "available" },
   { id: "c11-91", name: "BHAVYANSH GERA", activity: "ATHLETICS", gender: "male", status: "available" },
   { id: "c11-92", name: "KAVISH BURNWAL", activity: "SHOOTING", gender: "male", status: "available" },
