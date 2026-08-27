@@ -123,7 +123,6 @@ export const DEFAULT_PLAYERS = [
   { id: "c11-107", name: "YASH KUMAR AGRAWAL", activity: "SQUASH", gender: "male", status: "available" },
   { id: "c11-108", name: "PARTH GUPTA", activity: "ATHLETICS", gender: "male", status: "available" },
 
-
   // Class 12 Players
   { id: "c12-01", name: "AARADHYA RAI", activity: "WALL CLIMBING", gender: "male", prevTeam: "DHRUVA", status: "available" },
   { id: "c12-02", name: "AKSHIT SHARMA", activity: "FOOTBALL", gender: "male", prevTeam: "YODHA", status: "available" },
@@ -227,6 +226,22 @@ export const PLAYERS_STORAGE_KEY = "ehpl-auction-players";
 export const CURRENT_PLAYER_KEY = "ehpl-auction-current-player";
 export const SHOW_TEAMS_KEY = "ehpl-show-teams";
 
+// Dynamically generate random pairs of 2 female players
+export function generateRandomFemalePairs(players) {
+  const femalePlayers = players.filter((p) => p.gender === "female");
+  const shuffled = [...femalePlayers].sort(() => Math.random() - 0.5);
+  const pairs = [];
+
+  for (let i = 0; i < shuffled.length; i += 2) {
+    if (i + 1 < shuffled.length) {
+      pairs.push([shuffled[i].id, shuffled[i + 1].id]);
+    } else {
+      pairs.push([shuffled[i].id, shuffled[0].id]);
+    }
+  }
+  return pairs;
+}
+
 export const FEMALE_PAIRS = [
   ["f-15", "f-04"],
   ["f-20", "f-03"],
@@ -242,6 +257,29 @@ export const FEMALE_PAIRS = [
   ["f-21", "f-23"],
 ];
 
+export function getFemalePairUnits(players) {
+  return FEMALE_PAIRS.map((pairIds, index) => {
+    const p1 = players.find((p) => p.id === pairIds[0]);
+    const p2 = players.find((p) => p.id === pairIds[1]);
+
+    let status = "available";
+    if (p1?.status === "sold" && p2?.status === "sold") status = "sold";
+    else if (p1?.status === "unsold" || p2?.status === "unsold") status = "unsold";
+    else if (p1?.status === "passed" || p2?.status === "passed") status = "passed";
+
+    return {
+      id: `pair-${index + 1}`,
+      isPair: true,
+      gender: "female",
+      players: [p1, p2].filter(Boolean),
+      status: p1?.status || "available",
+      soldTo: p1?.soldTo || null,
+      price: p1?.price || 0,
+      unsoldOnce: p1?.unsoldOnce || false,
+    };
+  });
+}
+
 export function getPairPartner(playerId) {
   const pair = FEMALE_PAIRS.find((p) => p.includes(playerId));
   return pair ? pair.find((id) => id !== playerId) : null;
@@ -250,7 +288,7 @@ export function getPairPartner(playerId) {
 export function getPlayerCategory(playerId) {
   if (playerId?.startsWith("c11")) return "c11";
   if (playerId?.startsWith("c12")) return "c12";
-  if (playerId?.startsWith("f-")) return "female";
+  if (playerId?.startsWith("f-") || playerId?.startsWith("pair-")) return "female";
   return "other";
 }
 
@@ -261,24 +299,17 @@ export function getSoldPlayerGroups(players, teamName) {
   const c11 = males.filter((p) => getPlayerCategory(p.id) === "c11");
   const c12 = males.filter((p) => getPlayerCategory(p.id) === "c12");
 
-  const femalePairs = FEMALE_PAIRS.flatMap(([firstId, secondId]) => {
-    const first = players.find((p) => p.id === firstId);
-    const second = players.find((p) => p.id === secondId);
-    const soldPlayer = [first, second].find(
-      (p) => p && p.status === "sold" && p.soldTo === teamName
-    );
-    if (!soldPlayer) return [];
-    return [first, second]
-      .filter(Boolean)
-      .map((p) => ({ id: p.id, name: p.name, price: soldPlayer.price }));
-  });
+  const pairUnits = getFemalePairUnits(players);
+  const femalePairs = pairUnits
+    .filter((pair) => pair.status === "sold" && pair.soldTo === teamName)
+    .flatMap((pair) => pair.players.map((p) => ({ id: p.id, name: p.name, price: pair.price }));
 
   return { c11, c12, female: femalePairs };
 }
 
-/**
- * Get base price for a player
- */
 export function getBasePrice(player) {
+  if (player?.isPair) {
+    return player?.unsoldOnce ? 100000 : 40000;
+  }
   return player?.unsoldOnce ? 50000 : 20000;
 }
