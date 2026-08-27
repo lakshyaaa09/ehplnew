@@ -1,0 +1,35 @@
+// app/lib/players.js
+
+// Existing code...
+
+export const FEMALE_PAIRS = [
+  ["f-15", "f-04"],
+  ["f-20", "f-03"],
+  ["f-07", "f-22"],
+  ["f-24", "f-19"],
+  ["f-09", "f-08"],
+  ["f-18", "f-11"],
+  ["f-06", "f-16"],
+  ["f-12", "f-17"],
+  ["f-02", "f-05"],
+  ["f-13", "f-01"],
+  ["f-10", "f-14"],
+  ["f-21", "f-23"],
+];
+
+// Function to get sold female player pairs
+export function getSoldFemalePairs(players, teamName) {
+  return FEMALE_PAIRS.flatMap(([firstId, secondId]) => {
+    const first = players.find((p) => p.id === firstId);
+    const second = players.find((p) => p.id === secondId);
+    const soldPlayer = [first, second].find(
+      (p) => p && p.status === "sold" && p.soldTo === teamName
+    );
+    if (!soldPlayer) return [];
+    return [first, second]
+      .filter(Boolean)
+      .map((p) => ({ id: p.id, name: p.name, price: soldPlayer.price }));
+  });
+}
+
+// Existing code...
