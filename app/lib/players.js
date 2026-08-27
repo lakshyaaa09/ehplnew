@@ -247,6 +247,34 @@ export function getPairPartner(playerId) {
   return pair ? pair.find((id) => id !== playerId) : null;
 }
 
+/**
+ * Return both players in a female auction pair, in the order defined by
+ * FEMALE_PAIRS. This is used by the auction display and selection logic so a
+ * female player can never be auctioned without her pair.
+ */
+export function getFemalePair(playerId, players = DEFAULT_PLAYERS) {
+  const pair = FEMALE_PAIRS.find((ids) => ids.includes(playerId));
+  if (!pair) return [];
+
+  return pair
+    .map((id) => players.find((player) => player.id === id))
+    .filter(Boolean);
+}
+
+/**
+ * Return the unique female pairs that are still eligible for auction.
+ * A pair is eligible only when both players are available, preventing a
+ * previously selected partner from being offered a second time.
+ */
+export function getAvailableFemalePairs(players = DEFAULT_PLAYERS) {
+  return FEMALE_PAIRS.map((pair) =>
+    pair.map((id) => players.find((player) => player.id === id)).filter(Boolean)
+  ).filter(
+    (pair) =>
+      pair.length === 2 && pair.every((player) => player.status === "available")
+  );
+}
+
 export function getPlayerCategory(playerId) {
   if (playerId?.startsWith("c11")) return "c11";
   if (playerId?.startsWith("c12")) return "c12";
